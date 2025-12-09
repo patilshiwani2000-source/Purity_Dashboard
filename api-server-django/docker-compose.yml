@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Admin@123
+      POSTGRES_DB: DashboardReact
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432"
+
+  backend:
+    build:
+      context: ./api-server-django
+      dockerfile: Dockerfile.backend
+    command: gunicorn your_project_name.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - ./api-server-django:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DEBUG=False
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+      - DATABASE_URL=postgres://myuser:mypassword@db:5432/mydb
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./react-ui
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
