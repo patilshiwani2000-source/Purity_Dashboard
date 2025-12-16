@@ -8,22 +8,23 @@ try:
     conn = psycopg2.connect(
         host='localhost',
         port=5432,
-        user='dashboard_user',
+         user='postgres',
         password='Admin@123'
     )
     conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = conn.cursor()
     
     # Check if database exists
-    cursor.execute("SELECT 1 FROM pg_database WHERE datname='dashboard_react'")
+    # Check if database exists
+    cursor.execute("SELECT 1 FROM pg_database WHERE datname='DashboardReact'")
     exists = cursor.fetchone()
     
     if not exists:
         # Create database
-        cursor.execute('CREATE DATABASE "dashboard_react"')
-        print("Database 'dashboard_react' created successfully!")
+        cursor.execute('CREATE DATABASE "DashboardReact"')
+        print("Database 'DashboardReact' created successfully!")
     else:
-        print("Database 'dashboard_react' already exists.")
+        print("Database 'DashboardReact' already exists.")
     
     cursor.close()
     conn.close()

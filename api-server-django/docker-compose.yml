@@ -1,12 +1,12 @@
 version: '3.8'
 
 services:
-  db:
-    image: dashboard_user:15
+ db:
+    image: postgres:15
     environment:
-      POSTGRES_USER: dashboard_user
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: Admin@123
-      POSTGRES_DB: dashboard_react
+      POSTGRES_DB: DashboardReact
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -26,7 +26,7 @@ services:
     environment:
       - DEBUG=False
       - ALLOWED_HOSTS=localhost,127.0.0.1
-      - DATABASE_URL=dashboard_user://myuser:mypassword@db:5432/mydb
+      - DATABASE_URL=postgres://myuser:mypassword@db:5432/mydb
     restart: unless-stopped
 
   frontend:

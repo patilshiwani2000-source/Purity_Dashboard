@@ -2,28 +2,28 @@
 
 ## Prerequisites
 1. PostgreSQL must be installed and running
-2. Database `dashboard_react` must exist
-3. User `dashboard_user` with password `Admin@123` must have access
+2. Database `DashboardReact` must exist
+3. User `postgres` with password `Admin@123` must have access
 
 ## Steps to Setup PostgreSQL
 
 ### 1. Create the Database
 Open PostgreSQL command line (psql) or pgAdmin and run:
 ```sql
-CREATE DATABASE "dashboard_react";
+CREATE DATABASE "DashboardReact";
 ```
 
 Or using command line:
 ```bash
-psql -U dashboard_user
-CREATE DATABASE "dashboard_react";
+psql -U postgres
+CREATE DATABASE "DashboardReact";
 \q
 ```
 
 ### 2. Verify Database Connection
 Test connection with:
 ```bash
-psql -U dashboard_user -d dashboard_react -h localhost
+psql -U postgres -d DashboardReact -h localhost
 ```
 
 ### 3. Run Migrations
@@ -47,8 +47,8 @@ python manage.py runserver 8000
 ```
 
 ## Current Configuration
-- Database: dashboard_react
-- User: dashboard_user
+- Database: DashboardReact
+- User: postgres
 - Password: Admin@123
 - Host: localhost
 - Port: 5432
