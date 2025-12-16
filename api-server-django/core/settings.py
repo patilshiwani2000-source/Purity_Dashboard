@@ -88,16 +88,25 @@ WSGI_APPLICATION = "core.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': env('POSTGRES_DB', default='DashboardReact'),
-          "USER": env("DB_USER", default='postgres'),
-        "PASSWORD": env("DB_PASSWORD", default='Admin@123'),
-         "HOST": env("DB_HOST", default='localhost'),
-        "PORT": env("DB_PORT", default='5432'),
+# Parse DATABASE_URL from environment (for Render and other platforms)
+# Falls back to individual environment variables if DATABASE_URL is not set
+if env("DATABASE_URL", default=None):
+    # Use DATABASE_URL if provided (Render, Heroku, etc.)
+    DATABASES = {
+        "default": env.db("DATABASE_URL")
     }
-}
+else:
+    # Fall back to individual environment variables (local development)
+    DATABASES = {
+        "default": {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('POSTGRES_DB', default='DashboardReact'),
+            "USER": env("DB_USER", default='postgres'),
+            "PASSWORD": env("DB_PASSWORD", default='Admin@123'),
+            "HOST": env("DB_HOST", default='localhost'),
+            "PORT": env("DB_PORT", default='5432'),
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -134,6 +143,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = []
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
