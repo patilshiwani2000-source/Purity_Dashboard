@@ -10,7 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import os, environ
+import os
+import environ  # type: ignore
 from pathlib import Path
 
 env = environ.Env(
