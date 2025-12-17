@@ -38,6 +38,8 @@ except:
     DEBUG = False
 
 ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", default="*").split(" ")
+# Replace your current ALLOWED_HOSTS line with this:
+ALLOWED_HOSTS = env("DJANGO_ALLOWED_HOSTS", default="api-server-django-zjnz.onrender.com localhost 127.0.0.1").split(" ")
 
 # Application definition
 
@@ -173,7 +175,11 @@ REST_FRAMEWORK = {
 CORS_ALLOW_ALL_ORIGINS=True
 
 # Load the default ones
-CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+CORS_ALLOWED_ORIGINS = ["http://localhost:3000", 
+                        "http://127.0.0.1:3000",
+                        "https://purity-dashboard-1.onrender.com",
+                        "https://api-server-django-zjnz.onrender.com"
+                        ]
 
 # Leaded from Environment
 CORS_ALLOWED_ORIGINS_ENV = env("CORS_ALLOWED_ORIGINS", default=None)
