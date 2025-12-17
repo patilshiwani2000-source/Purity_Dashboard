@@ -1,8 +1,7 @@
 import axios from "./index";
 
-// const base = "http://127.0.0.1:8000/api/users";  // ← IMPORTANT
-//purity-dashboard-1.onrender.com
-const base = "https://purity-dashboard-1.onrender.com/api/users";
+// Use backend URL, not frontend URL
+const base = "https://api-server-django-zjnz.onrender.com/api/users";
 
 class AuthApi {
   static Login(data) {
