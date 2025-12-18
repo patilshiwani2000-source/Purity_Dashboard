@@ -22,235 +22,172 @@ import { useHistory, useLocation } from "react-router-dom";
 
 function SignIn() {
   const location = useLocation();
+  const history = useHistory();
+
   const [formData, setFormData] = useState({
-    'email': '',
-    'password': ''
+    email: "",
+    password: "",
   });
+
   const [error, setError] = useState("");
   const [info, setInfo] = useState("");
 
-  const history = useHistory();
   const { user, setUser } = useAuth();
-  // Chakra color mode
+
   const titleColor = useColorModeValue("teal.300", "teal.200");
   const textColor = useColorModeValue("gray.400", "white");
 
-  const handleChange = e => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
-    })
-  }
+      [e.target.name]: e.target.value,
+    });
+  };
 
+  // Flash message after register
   useEffect(() => {
     const state = location?.state || {};
-    const registeredEmail = state?.registeredEmail;
-    const flash = state?.flash;
-
-    if (flash) setInfo(flash);
-    if (registeredEmail) {
-      setFormData((prev) => ({ ...prev, email: registeredEmail }));
+    if (state.flash) setInfo(state.flash);
+    if (state.registeredEmail) {
+      setFormData((prev) => ({ ...prev, email: state.registeredEmail }));
     }
 
-    // Clear one-time state so refresh doesn't keep showing it
-    if (flash || registeredEmail) {
+    if (state.flash || state.registeredEmail) {
       history.replace({ ...location, state: {} });
     }
   }, [history, location]);
 
-  const handleSubmit = e => {
+  // ✅ FINAL LOGIN HANDLER
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError("");
     setInfo("");
-    AuthApi.Login(formData).then(response => {
-      if(response.data.success) {
-        return setProfile(response);
-      } else {
-        const rawMsg = response.data?.msg || "Login failed";
-        const shouldHide =
-          /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
-            rawMsg
-          );
-        // Hide server/DB connectivity details from UI (show nothing)
-        setError(shouldHide ? "" : rawMsg);
-      }
-    }).catch(error => {
-      const status = error.response?.status;
-      const rawMsg = error.response?.data?.msg || error.message || "There has been an error.";
-      const shouldHide =
-        (typeof status === "number" && status >= 500) ||
-        /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
-          rawMsg
-        );
-      // Hide server/DB connectivity details from UI (show nothing)
-      return setError(shouldHide ? "" : rawMsg);
-    })
-  }
+
+    AuthApi.Login(formData)
+      .then((response) => {
+        if (response.data?.success) {
+          setProfile(response);
+        } else {
+          setError(response.data?.msg || "Login failed");
+        }
+      })
+      .catch((error) => {
+        const status = error.response?.status;
+        const msg = error.response?.data?.msg;
+
+        if (status === 404) {
+          setError("User not registered. Please sign up first.");
+        } else if (status === 401) {
+          setError("Invalid password.");
+        } else {
+          setError(msg || "Login failed. Try again.");
+        }
+      });
+  };
 
   const setProfile = (response) => {
-    let user = { ...response.data.user };
-    user.token = response.data.token;
-    user = JSON.stringify(user);
-    setUser(user);
-    localStorage.setItem("user", user);
-    return history.push("/dashboard");
+    let userData = { ...response.data.user };
+    userData.token = response.data.token;
+
+    setUser(JSON.stringify(userData));
+    localStorage.setItem("user", JSON.stringify(userData));
+
+    history.push("/dashboard");
   };
+
   return (
-    <Flex position='relative' mb='40px'>
+    <Flex position="relative" mb="40px">
       <Flex
         h={{ sm: "initial", md: "75vh", lg: "85vh" }}
-        w='100%'
-        maxW='1044px'
-        mx='auto'
-        justifyContent='space-between'
-        mb='30px'
-        pt={{ sm: "100px", md: "0px" }}>
+        w="100%"
+        maxW="1044px"
+        mx="auto"
+        justifyContent="space-between"
+        pt={{ sm: "100px", md: "0px" }}
+      >
         {user && user.token ? (
-        <Flex
-          alignItems='center'
-          justifyContent='start'
-          style={{ userSelect: "none" }}
-          w={{ base: "100%", md: "50%", lg: "42%" }}>
-          <Flex
-            direction='column'
-            w='100%'
-            background='transparent'
-            p='48px'
-            mt={{ md: "150px", lg: "80px" }}>
-            <Heading color={titleColor} fontSize='32px' mb='10px'>
-              You are already signed in.
-            </Heading>
+          <Flex w="100%" justify="center" align="center">
+            <Heading color={titleColor}>You are already signed in.</Heading>
           </Flex>
-        </Flex>
         ) : (
-        <Flex
-          alignItems='center'
-          justifyContent='start'
-          style={{ userSelect: "none" }}
-          w={{ base: "100%", md: "50%", lg: "42%" }}>
-          <Flex
-            direction='column'
-            w='100%'
-            background='transparent'
-            p='48px'
-            mt={{ md: "150px", lg: "80px" }}>
-            <Heading color={titleColor} fontSize='32px' mb='10px'>
-              Welcome Back
-            </Heading>
-            <Text
-              mb='36px'
-              ms='4px'
-              color={textColor}
-              fontWeight='bold'
-              fontSize='14px'>
-              add your credentials
-            </Text>
-            {info ? (
-              <Text color="green.500" mb="12px" fontWeight="bold" fontSize="14px">
-                {info}
+          <Flex w={{ base: "100%", md: "50%" }} align="center">
+            <Flex direction="column" w="100%" p="48px">
+              <Heading color={titleColor} mb="10px">
+                Welcome Back
+              </Heading>
+              <Text color={textColor} fontWeight="bold" mb="24px">
+                add your credentials
               </Text>
-            ) : null}
-            <FormControl>
-              <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
-                Email
-              </FormLabel>
-              <Input
-                borderRadius='15px'
-                mb='24px'
-                fontSize='sm'
-                type='text'
-                placeholder='Your email adress'
-                size='lg'
-                onChange={handleChange}
-                name="email"
-                value={formData?.email}
-              />
-              <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
-                Password
-              </FormLabel>
-              <Input
-                borderRadius='15px'
-                mb='36px'
-                fontSize='sm'
-                type='password'
-                placeholder='Your password'
-                size='lg'
-                onChange={handleChange}
-                name="password"
-                value={formData?.password}
-              />
-              <FormControl display='flex' alignItems='center'>
-                <Switch id='remember-login' colorScheme='teal' me='10px' />
-                <FormLabel
-                  htmlFor='remember-login'
-                  mb='0'
-                  ms='1'
-                  fontWeight='normal'>
-                  Remember me
-                </FormLabel>
-              </FormControl>
-              <Flex
-                flexDirection='column'
-                justifyContent='center'
-                alignItems='center'
-                maxW='100%'
-                mt='0px'>
-                {error ? (
-                  <Text color="red" marginTop="10px" fontWeight='medium'>
+
+              {info && (
+                <Text color="green.500" mb="12px" fontWeight="bold">
+                  {info}
+                </Text>
+              )}
+
+              <FormControl>
+                <FormLabel>Email</FormLabel>
+                <Input
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Your email address"
+                  mb="24px"
+                />
+
+                <FormLabel>Password</FormLabel>
+                <Input
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Your password"
+                  mb="24px"
+                />
+
+                <FormControl display="flex" alignItems="center">
+                  <Switch colorScheme="teal" mr="10px" />
+                  <FormLabel mb="0">Remember me</FormLabel>
+                </FormControl>
+
+                {error && (
+                  <Text color="red.500" mt="10px" fontWeight="medium">
                     {error}
                   </Text>
-                ) : null}
-              </Flex>
-              <Button
-                onClick={handleSubmit}
-                fontSize='10px'
-                type='submit'
-                bg='teal.300'
-                w='100%'
-                h='45'
-                mb='20px'
-                color='white'
-                mt='20px'
-                _hover={{
-                  bg: "teal.200",
-                }}
-                _active={{
-                  bg: "teal.400",
-                }}>
-                SIGN IN
-              </Button>
-            </FormControl>
-            <Flex
-              flexDirection='column'
-              justifyContent='center'
-              alignItems='center'
-              maxW='100%'
-              mt='0px'>
-              <Text color={textColor} fontWeight='medium'>
+                )}
+
+                <Button
+                  onClick={handleSubmit}
+                  bg="teal.300"
+                  color="white"
+                  w="100%"
+                  mt="20px"
+                  _hover={{ bg: "teal.200" }}
+                >
+                  SIGN IN
+                </Button>
+              </FormControl>
+
+              <Text mt="20px" color={textColor}>
                 Don't have an account?
-                <Link color={titleColor} href="#/auth/signup" ms='5px' fontWeight='bold'>
+                <Link href="#/auth/signup" color={titleColor} ml="5px">
                   Sign Up
                 </Link>
               </Text>
             </Flex>
           </Flex>
-        </Flex>)}
+        )}
+
         <Box
           display={{ base: "none", md: "block" }}
-          overflowX='hidden'
-          h='100%'
-          w='40vw'
-          position='absolute'
-          right='0px'>
-          <Box
-            bgImage={signInImage}
-            w='100%'
-            h='100%'
-            bgSize='cover'
-            bgPosition='50%'
-            position='absolute'
-            borderBottomLeftRadius='20px'></Box>
-        </Box>
+          w="40vw"
+          position="absolute"
+          right="0"
+          h="100%"
+          bgImage={signInImage}
+          bgSize="cover"
+          borderBottomLeftRadius="20px"
+        />
       </Flex>
     </Flex>
   );
