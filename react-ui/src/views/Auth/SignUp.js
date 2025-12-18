@@ -208,7 +208,7 @@ function SignUp() {
               alignItems='center'
               maxW='100%'
               mt='0px'>
-              <Text color="green" marginBottom="15px" fontWeight='medium'>
+              <Text color="teal.300" marginBottom="15px" fontWeight='medium'>
                 {error}
               </Text>
             </Flex>
