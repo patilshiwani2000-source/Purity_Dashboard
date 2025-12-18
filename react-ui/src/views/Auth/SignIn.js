@@ -46,13 +46,22 @@ function SignIn() {
       if(response.data.success) {
         return setProfile(response);
       } else {
-        setError(response.data.msg)
+        const rawMsg = response.data?.msg || "Login failed";
+        const shouldHide =
+          /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
+            rawMsg
+          );
+        setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
       }
     }).catch(error => {
-      if (error.response) {
-        return setError(error.response.data.msg);
-      }
-      return setError("There has been an error.");
+      const status = error.response?.status;
+      const rawMsg = error.response?.data?.msg || error.message || "There has been an error.";
+      const shouldHide =
+        (typeof status === "number" && status >= 500) ||
+        /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
+          rawMsg
+        );
+      return setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
     })
   }
 

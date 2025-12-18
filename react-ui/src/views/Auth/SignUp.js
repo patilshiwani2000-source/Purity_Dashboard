@@ -56,14 +56,22 @@ function SignUp() {
     if (response.data.success) {
       history.push("/auth/signin");
     } else {
-      setError(response.data.msg || "Registration failed");
+      const rawMsg = response.data?.msg || "Registration failed";
+      const shouldHide =
+        /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
+          rawMsg
+        );
+      setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
     }
   } catch (error) {
-    const msg =
-      error.response?.data?.msg ||
-      error.message ||
-      "Server error";
-    setError(msg);
+    const status = error.response?.status;
+    const rawMsg = error.response?.data?.msg || error.message || "Server error";
+    const shouldHide =
+      (typeof status === "number" && status >= 500) ||
+      /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
+        rawMsg
+      );
+    setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
   }
 };
 

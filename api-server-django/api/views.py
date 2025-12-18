@@ -1,3 +1,5 @@
+import logging
+
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -7,6 +9,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 # Your existing home function
 def home(request):
     return HttpResponse("Django API Server is running!")
@@ -31,10 +35,15 @@ class UserLoginView(View):
                 "msg": "Invalid JSON data"
             }, status=400)
         except Exception as e:
-            return JsonResponse({
-                "success": False,
-                "msg": str(e)
-            }, status=500)
+            # Don't leak internal exceptions (DB hostnames, stack traces, etc.) to clients.
+            logger.exception("Login failed")
+            return JsonResponse(
+                {
+                    "success": False,
+                    "msg": "Server is temporarily unavailable. Please try again.",
+                },
+                status=500,
+            )
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserRegisterView(View):
@@ -76,7 +85,12 @@ class UserRegisterView(View):
             })
 
         except Exception as e:
-            return JsonResponse({
-                "success": False,
-                "msg": str(e)
-            }, status=500)
+            # Don't leak internal exceptions (DB hostnames, stack traces, etc.) to clients.
+            logger.exception("Registration failed")
+            return JsonResponse(
+                {
+                    "success": False,
+                    "msg": "Server is temporarily unavailable. Please try again.",
+                },
+                status=500,
+            )
