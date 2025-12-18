@@ -5,181 +5,257 @@ import {
   Flex,
   FormControl,
   FormLabel,
+  HStack,
+  Icon,
   Input,
   Link,
   Switch,
   Text,
   useColorModeValue,
-  useToast,
 } from "@chakra-ui/react";
-import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
-
 // Assets
 import BgSignUp from "assets/img/BgSignUp.png";
+import React, { useState } from "react";
+import { FaApple, FaFacebook, FaGoogle } from "react-icons/fa";
 
-// API & Auth
 import AuthApi from "../../api/auth";
 import { useAuth } from "../../auth-context/auth.context";
+import { useHistory } from "react-router-dom";
 
 function SignUp() {
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-  });
+  const [formData, setFormData] = useState({});
   const [error, setError] = useState("");
 
   const history = useHistory();
-  const toast = useToast();
   const { user } = useAuth();
 
   const titleColor = useColorModeValue("teal.300", "teal.200");
   const textColor = useColorModeValue("gray.700", "white");
   const bgColor = useColorModeValue("white", "gray.700");
+  const bgIcons = useColorModeValue("teal.200", "rgba(255, 255, 255, 0.5)");
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const handleChange = e => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (!formData.username || !formData.email || !formData.password) {
-      setError("Please fill in all fields");
-      return;
+  if (!formData.username || !formData.email || !formData.password) {
+    setError("Please fill in all fields");
+    return;
+  }
+
+  try {
+    const response = await AuthApi.Register(formData);
+
+    if (response.data.success) {
+      history.push("/auth/signin", {
+        registeredEmail: formData.email,
+        flash: "Registered successfully. Please sign in.",
+      });
+    } else {
+      const rawMsg = response.data?.msg || "Registration failed";
+      const shouldHide =
+        /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
+          rawMsg
+        );
+      // Hide server/DB connectivity details from UI (show nothing)
+      setError(shouldHide ? "" : rawMsg);
     }
-
-    try {
-      const response = await AuthApi.Register(formData);
-
-      if (response.data?.success) {
-        toast({
-          title: "Registration successful",
-          description: "Please sign in to continue",
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-        });
-
-        history.push("/auth/signin", {
-          registeredEmail: formData.email,
-        });
-      } else {
-        setError(response.data?.msg || "Registration failed");
-      }
-    } catch (err) {
-      setError("Server error. Please try again later.");
-    }
-  };
+  } catch (error) {
+    const status = error.response?.status;
+    const rawMsg = error.response?.data?.msg || error.message || "Server error";
+    const shouldHide =
+      (typeof status === "number" && status >= 500) ||
+      /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
+        rawMsg
+      );
+    // Hide server/DB connectivity details from UI (show nothing)
+    setError(shouldHide ? "" : rawMsg);
+  }
+};
 
   return (
-    <Flex direction="column" alignSelf="center" overflow="hidden">
-      {/* Background */}
+    <Flex
+      direction='column'
+      alignSelf='center'
+      justifySelf='center'
+      overflow='hidden'>
       <Box
-        position="absolute"
+        position='absolute'
         minH={{ base: "70vh", md: "50vh" }}
         w={{ md: "calc(100vw - 50px)" }}
         borderRadius={{ md: "15px" }}
+        left='0'
+        right='0'
+        bgRepeat='no-repeat'
+        overflow='hidden'
+        zIndex='-1'
+        top='0'
         bgImage={BgSignUp}
-        bgSize="cover"
-        zIndex="-1"
-      />
-
-      {/* Header */}
+        bgSize='cover'
+        mx={{ md: "auto" }}
+        mt={{ md: "14px" }}></Box>
       <Flex
-        direction="column"
-        align="center"
-        justify="center"
-        mt="6.5rem"
-        mb="30px"
-      >
-        <Text fontSize="4xl" color="white" fontWeight="bold">
+        direction='column'
+        textAlign='center'
+        justifyContent='center'
+        align='center'
+        mt='6.5rem'
+        mb='30px'>
+        <Text fontSize='4xl' color='white' fontWeight='bold'>
           Welcome!
         </Text>
-        <Text fontSize="md" color="white" mt="10px">
-          Create your account
+        <Text
+          fontSize='md'
+          color='white'
+          fontWeight='normal'
+          mt='10px'
+          mb='26px'
+          w={{ base: "90%", sm: "60%", lg: "40%", xl: "30%" }}>
+          Use these awesome forms to login or create new account in your project
+          for free.
         </Text>
       </Flex>
-
-      {/* Form */}
-      <Flex align="center" justify="center" mb="60px">
-        {user?.token ? (
-          <Text fontSize="xl" fontWeight="bold" color={textColor}>
-            You are already signed in.
+      <Flex alignItems='center' justifyContent='center' mb='60px' mt='20px'>
+        {user && user.token ? (
+          <Text
+            fontSize='xl'
+            color={textColor}
+            fontWeight='bold'
+            textAlign='center'
+            mb='22px'>
+              You are already signed in.
           </Text>
         ) : (
-          <Flex
-            direction="column"
-            w="445px"
-            p="40px"
-            bg={bgColor}
-            borderRadius="15px"
-            boxShadow="0 20px 27px 0 rgb(0 0 0 / 5%)"
-          >
-            <Text fontSize="xl" fontWeight="bold" mb="10px" textAlign="center">
-              Register
-            </Text>
-
-            <FormControl>
-              <FormLabel>Name</FormLabel>
-              <Input
-                name="username"
-                placeholder="Your full name"
-                onChange={handleChange}
-                mb="20px"
-              />
-
-              <FormLabel>Email</FormLabel>
-              <Input
-                type="email"
-                name="email"
-                placeholder="Your email"
-                onChange={handleChange}
-                mb="20px"
-              />
-
-              <FormLabel>Password</FormLabel>
-              <Input
-                type="password"
-                name="password"
-                placeholder="Your password"
-                onChange={handleChange}
-                mb="20px"
-              />
-
-              <Flex align="center" mb="20px">
-                <Switch colorScheme="teal" mr="10px" />
-                <Text fontSize="sm">Remember me</Text>
-              </Flex>
-
-              {error && (
-                <Text color="red.500" mb="15px" textAlign="center">
+        <Flex
+          direction='column'
+          w='445px'
+          background='transparent'
+          borderRadius='15px'
+          p='40px'
+          mx={{ base: "100px" }}
+          bg={bgColor}
+          boxShadow='0 20px 27px 0 rgb(0 0 0 / 5%)'>
+          <Text
+            fontSize='xl'
+            color={textColor}
+            fontWeight='bold'
+            textAlign='center'
+            mb='22px'>
+            Register
+          </Text>
+          <Text
+            fontSize='lg'
+            color='gray.400'
+            fontWeight='bold'
+            textAlign='center'
+            mb='22px'>
+            add your credentials
+          </Text>
+          <FormControl>
+            <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
+              Name
+            </FormLabel>
+            <Input
+              fontSize='sm'
+              ms='4px'
+              borderRadius='15px'
+              type='text'
+              placeholder='Your full name'
+              mb='24px'
+              size='lg'
+              name="username"
+              onChange={handleChange}
+            />
+            <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
+              Email
+            </FormLabel>
+            <Input
+              fontSize='sm'
+              ms='4px'
+              borderRadius='15px'
+              type='email'
+              placeholder='Your email address'
+              mb='24px'
+              size='lg'
+              name="email"
+              onChange={handleChange}
+            />
+            <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
+              Password
+            </FormLabel>
+            <Input
+              fontSize='sm'
+              ms='4px'
+              borderRadius='15px'
+              type='password'
+              placeholder='Your password'
+              mb='24px'
+              size='lg'
+              name="password"
+              onChange={handleChange}
+            />
+            <FormControl display='flex' alignItems='center' mb='24px'>
+              <Switch id='remember-login' colorScheme='teal' me='10px' />
+              <FormLabel htmlFor='remember-login' mb='0' fontWeight='normal'>
+                Remember me
+              </FormLabel>
+            </FormControl>
+            <Flex
+              flexDirection='column'
+              justifyContent='center'
+              alignItems='center'
+              maxW='100%'
+              mt='0px'>
+              {error ? (
+                <Text color="red" marginBottom="15px" fontWeight='medium'>
                   {error}
                 </Text>
-              )}
-
-              <Button
-                bg="teal.300"
-                color="white"
-                w="100%"
-                h="45px"
-                _hover={{ bg: "teal.200" }}
-                onClick={handleSubmit}
-              >
-                SIGN UP
-              </Button>
-            </FormControl>
-
-            <Text textAlign="center" mt="20px">
+              ) : null}
+            </Flex>
+            <Button
+              onClick={handleSubmit}
+              type='submit'
+              bg='teal.300'
+              fontSize='10px'
+              color='white'
+              fontWeight='bold'
+              w='100%'
+              h='45'
+              mb='24px'
+              _hover={{
+                bg: "teal.200",
+              }}
+              _active={{
+                bg: "teal.400",
+              }}>
+              SIGN UP
+            </Button>
+          </FormControl>
+          <Flex
+            flexDirection='column'
+            justifyContent='center'
+            alignItems='center'
+            maxW='100%'
+            mt='0px'>
+            <Text color={textColor} fontWeight='medium'>
               Already have an account?
-              <Link href="#/auth/signin" color={titleColor} ml="5px">
+              <Link
+                color={titleColor}
+                ms='5px'
+                href='#/auth/signin'
+                fontWeight='bold'>
                 Sign In
               </Link>
             </Text>
           </Flex>
-        )}
+        </Flex>)}
       </Flex>
     </Flex>
   );
