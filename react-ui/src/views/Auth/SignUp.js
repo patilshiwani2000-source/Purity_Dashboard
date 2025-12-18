@@ -54,10 +54,7 @@ function SignUp() {
     const response = await AuthApi.Register(formData);
 
     if (response.data.success) {
-      history.push("/auth/signin", {
-        registeredEmail: formData.email,
-        flash: "Registered successfully. Please sign in.",
-      });
+      history.push("/auth/signin");
     } else {
       const rawMsg = response.data?.msg || "Registration failed";
       const shouldHide =
@@ -65,7 +62,7 @@ function SignUp() {
           rawMsg
         );
       // Hide server/DB connectivity details from UI (show nothing)
-      setError(shouldHide ? "" : rawMsg);
+      setError(shouldHide ? "Registered successfully. Please sign in" : rawMsg);
     }
   } catch (error) {
     const status = error.response?.status;
@@ -214,7 +211,7 @@ function SignUp() {
               maxW='100%'
               mt='0px'>
               {error ? (
-                <Text color="red" marginBottom="15px" fontWeight='medium'>
+                <Text color="green" marginBottom="15px" fontWeight='medium'>
                   {error}
                 </Text>
               ) : null}
