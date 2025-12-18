@@ -42,6 +42,7 @@ function SignIn() {
 
   const handleSubmit = e => {
     e.preventDefault();
+    setError("");
     AuthApi.Login(formData).then(response => {
       if(response.data.success) {
         return setProfile(response);
@@ -51,7 +52,8 @@ function SignIn() {
           /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
             rawMsg
           );
-        setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
+        // Hide server/DB connectivity details from UI (show nothing)
+        setError(shouldHide ? "" : rawMsg);
       }
     }).catch(error => {
       const status = error.response?.status;
@@ -61,7 +63,8 @@ function SignIn() {
         /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
           rawMsg
         );
-      return setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
+      // Hide server/DB connectivity details from UI (show nothing)
+      return setError(shouldHide ? "" : rawMsg);
     })
   }
 
@@ -168,9 +171,11 @@ function SignIn() {
                 alignItems='center'
                 maxW='100%'
                 mt='0px'>
-                <Text color="red" marginTop="10px" fontWeight='medium'>
-                  {error}
-                </Text>
+                {error ? (
+                  <Text color="red" marginTop="10px" fontWeight='medium'>
+                    {error}
+                  </Text>
+                ) : null}
               </Flex>
               <Button
                 onClick={handleSubmit}

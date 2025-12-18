@@ -61,7 +61,8 @@ function SignUp() {
         /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
           rawMsg
         );
-      setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
+      // Hide server/DB connectivity details from UI (show nothing)
+      setError(shouldHide ? "" : rawMsg);
     }
   } catch (error) {
     const status = error.response?.status;
@@ -71,7 +72,8 @@ function SignUp() {
       /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
         rawMsg
       );
-    setError(shouldHide ? "Server is temporarily unavailable. Please try again." : rawMsg);
+    // Hide server/DB connectivity details from UI (show nothing)
+    setError(shouldHide ? "" : rawMsg);
   }
 };
 
@@ -208,9 +210,11 @@ function SignUp() {
               alignItems='center'
               maxW='100%'
               mt='0px'>
-              <Text color="red" marginBottom="15px" fontWeight='medium'>
-                {error}
-              </Text>
+              {error ? (
+                <Text color="red" marginBottom="15px" fontWeight='medium'>
+                  {error}
+                </Text>
+              ) : null}
             </Flex>
             <Button
               onClick={handleSubmit}
