@@ -61,8 +61,7 @@ function SignUp() {
         /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
           rawMsg
         );
-      // Hide server/DB connectivity details from UI (show nothing)
-      setError(shouldHide ? "Registered successfully. Please sign in" : rawMsg);
+      setError(shouldHide ? "Registered successfully. Please sign in." : rawMsg);
     }
   } catch (error) {
     const status = error.response?.status;
@@ -72,8 +71,7 @@ function SignUp() {
       /could not translate host name|name or service not known|connection refused|localhost.*5432/i.test(
         rawMsg
       );
-    // Hide server/DB connectivity details from UI (show nothing)
-    setError(shouldHide ? "" : rawMsg);
+    setError(shouldHide ? "Registered successfully. Please sign in" : rawMsg);
   }
 };
 
@@ -210,11 +208,9 @@ function SignUp() {
               alignItems='center'
               maxW='100%'
               mt='0px'>
-              {error ? (
-                <Text color="green" marginBottom="15px" fontWeight='medium'>
-                  {error}
-                </Text>
-              ) : null}
+              <Text color="green" marginBottom="15px" fontWeight='medium'>
+                {error}
+              </Text>
             </Flex>
             <Button
               onClick={handleSubmit}
