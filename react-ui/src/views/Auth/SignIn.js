@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-// Chakra imports
 import {
   Box,
   Flex,
@@ -13,7 +12,6 @@ import {
   Text,
   useColorModeValue,
 } from "@chakra-ui/react";
-// Assets
 import signInImage from "assets/img/signInImage.png";
 
 import AuthApi from "../../api/auth";
@@ -38,61 +36,59 @@ function SignIn() {
   const textColor = useColorModeValue("gray.400", "white");
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   // Flash message after register
   useEffect(() => {
-    const state = location?.state || {};
+    const state = location.state || {};
+
     if (state.flash) setInfo(state.flash);
     if (state.registeredEmail) {
-      setFormData((prev) => ({ ...prev, email: state.registeredEmail }));
+      setFormData((prev) => ({
+        ...prev,
+        email: state.registeredEmail,
+      }));
     }
 
     if (state.flash || state.registeredEmail) {
       history.replace({ ...location, state: {} });
     }
-  }, [history, location]);
+  }, [location, history]);
 
-  // ✅ FINAL LOGIN HANDLER
-  const handleSubmit = (e) => {
+  // ✅ FINAL LOGIN HANDLER (STRICT & SAFE)
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setInfo("");
 
-    AuthApi.Login(formData)
-      .then((response) => {
-        if (response.data?.success) {
-          setProfile(response);
-        } else {
-          setError(response.data?.msg || "Login failed");
-        }
-      })
-      .catch((error) => {
-        const status = error.response?.status;
-        const msg = error.response?.data?.msg;
+    try {
+      const response = await AuthApi.Login(formData);
+      const data = response.data;
 
-        if (status === 404) {
-          setError("User not registered. Please sign up first.");
-        } else if (status === 401) {
-          setError("Invalid password.");
-        } else {
-          setError(msg || "Login failed. Try again.");
-        }
-      });
-  };
+      // STRICT SUCCESS CHECK
+      if (data?.success && data?.user && data?.token) {
+        const userData = { ...data.user, token: data.token };
 
-  const setProfile = (response) => {
-    let userData = { ...response.data.user };
-    userData.token = response.data.token;
+        setUser(JSON.stringify(userData));
+        localStorage.setItem("user", JSON.stringify(userData));
 
-    setUser(JSON.stringify(userData));
-    localStorage.setItem("user", JSON.stringify(userData));
+        history.push("/dashboard");
+      } else {
+        setError(data?.msg || "User not registered. Please sign up first.");
+      }
+    } catch (error) {
+      const status = error.response?.status;
+      const msg = error.response?.data?.msg;
 
-    history.push("/dashboard");
+      if (status === 404) {
+        setError("User not registered. Please sign up first.");
+      } else if (status === 401) {
+        setError("Invalid email or password.");
+      } else {
+        setError(msg || "Login failed. Try again.");
+      }
+    }
   };
 
   return (
@@ -116,7 +112,7 @@ function SignIn() {
                 Welcome Back
               </Heading>
               <Text color={textColor} fontWeight="bold" mb="24px">
-                add your credentials
+                Add your credentials
               </Text>
 
               {info && (
@@ -169,7 +165,7 @@ function SignIn() {
               </FormControl>
 
               <Text mt="20px" color={textColor}>
-                Don't have an account?
+                Don&apos;t have an account?
                 <Link href="#/auth/signup" color={titleColor} ml="5px">
                   Sign Up
                 </Link>
