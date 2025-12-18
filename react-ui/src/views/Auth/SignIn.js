@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 // Chakra imports
 import {
   Box,
@@ -18,14 +18,16 @@ import signInImage from "assets/img/signInImage.png";
 
 import AuthApi from "../../api/auth";
 import { useAuth } from "../../auth-context/auth.context";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 
 function SignIn() {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     'email': '',
     'password': ''
   });
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
 
   const history = useHistory();
   const { user, setUser } = useAuth();
@@ -40,9 +42,26 @@ function SignIn() {
     })
   }
 
+  useEffect(() => {
+    const state = location?.state || {};
+    const registeredEmail = state?.registeredEmail;
+    const flash = state?.flash;
+
+    if (flash) setInfo(flash);
+    if (registeredEmail) {
+      setFormData((prev) => ({ ...prev, email: registeredEmail }));
+    }
+
+    // Clear one-time state so refresh doesn't keep showing it
+    if (flash || registeredEmail) {
+      history.replace({ ...location, state: {} });
+    }
+  }, [history, location]);
+
   const handleSubmit = e => {
     e.preventDefault();
     setError("");
+    setInfo("");
     AuthApi.Login(formData).then(response => {
       if(response.data.success) {
         return setProfile(response);
@@ -126,6 +145,11 @@ function SignIn() {
               fontSize='14px'>
               add your credentials
             </Text>
+            {info ? (
+              <Text color="green.500" mb="12px" fontWeight="bold" fontSize="14px">
+                {info}
+              </Text>
+            ) : null}
             <FormControl>
               <FormLabel ms='4px' fontSize='sm' fontWeight='normal'>
                 Email

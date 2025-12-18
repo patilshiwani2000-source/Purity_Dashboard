@@ -54,7 +54,10 @@ function SignUp() {
     const response = await AuthApi.Register(formData);
 
     if (response.data.success) {
-      history.push("/auth/signin");
+      history.push("/auth/signin", {
+        registeredEmail: formData.email,
+        flash: "Registered successfully. Please sign in.",
+      });
     } else {
       const rawMsg = response.data?.msg || "Registration failed";
       const shouldHide =
